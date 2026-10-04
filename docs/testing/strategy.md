@@ -1,14 +1,22 @@
 # Testing strategy
 
-| Tier | Location | Needs Spark | Covers |
-|---|---|---|---|
-| Unit | `tests/test_*.py` | no | schema policy, batch windows, immutable landing, payload parsing, metrics, RBAC, SQL guard, API |
-| Integration | `tests/integration/` (`@pytest.mark.spark`) | yes | quality engine (seeded bad-record recall, conservation), end-to-end pipeline, idempotent re-runs, late/duplicate data, additive and breaking schema changes |
+| Tier        | Location                                    | Needs Spark | Covers                                                                                                                                                      |
+|-------------|---------------------------------------------|-------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Unit        | `tests/test_*.py`                           | no          | schema policy, batch windows, immutable landing, payload parsing, metrics, RBAC, SQL guard, API                                                             |
+| Integration | `tests/integration/` (`@pytest.mark.spark`) | yes         | quality engine (seeded bad-record recall, conservation), end-to-end pipeline, idempotent re-runs, late/duplicate data, additive and breaking schema changes |
+
+Tests are executed entirely within Docker to guarantee a clean, predictable environment without requiring host-level
+Java or Hadoop configurations.
 
 ```bash
-pytest -m "not spark"                 # fast
-pytest                                # everything, with coverage
-pytest tests/integration -k rerun     # the idempotency test
+# Fast unit tests
+docker compose --profile dev run --rm dev pytest -m "not spark"
+
+# Full suite, with coverage
+docker compose --profile dev run --rm dev pytest
+
+# Run a specific idempotency test
+docker compose --profile dev run --rm dev pytest tests/integration -k rerun
 ```
 
 Integration tests are offline: synthetic parquet is served from a local folder through
