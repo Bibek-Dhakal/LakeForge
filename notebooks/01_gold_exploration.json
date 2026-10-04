@@ -1,0 +1,108 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# LakeForge: explore gold + quarantine\n",
+    "\n",
+    "Run `lakeforge run --start 2024-01 --end 2024-01` first. Set `LAKE_ROOT` if you changed it."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import os\n",
+    "from pathlib import Path\n",
+    "\n",
+    "import duckdb\n",
+    "from deltalake import DeltaTable\n",
+    "\n",
+    "LAKE_ROOT = Path(os.environ.get(\"LAKE_ROOT\", \"./data/lake\")).resolve()\n",
+    "\n",
+    "\n",
+    "def ds(layer, name):\n",
+    "    return DeltaTable((LAKE_ROOT / layer / name).as_posix()).to_pyarrow_dataset()\n",
+    "\n",
+    "\n",
+    "con = duckdb.connect()\n",
+    "con.register(\"daily_summary\", ds(\"gold\", \"daily_summary\"))\n",
+    "con.register(\"fact_trips_daily\", ds(\"gold\", \"fact_trips_daily\"))\n",
+    "con.register(\"dim_zone\", ds(\"gold\", \"dim_zone\"))\n",
+    "con.register(\"quarantine_trips\", ds(\"quarantine\", \"taxi_trips\"))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "daily = con.sql(\"SELECT * FROM daily_summary ORDER BY pickup_date\").df()\n",
+    "daily[\"revenue\"] = daily[\"revenue\"].astype(float)\n",
+    "daily.plot(x=\"pickup_date\", y=\"trips\", figsize=(10, 3), title=\"Trips per day\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "daily.plot.scatter(x=\"precip_mm\", y=\"revenue\", figsize=(6, 4), title=\"Revenue vs precipitation\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "con.sql(\n",
+    "    \"\"\"\n",
+    "    SELECT z.borough, z.zone, sum(f.trips) AS trips\n",
+    "    FROM fact_trips_daily f JOIN dim_zone z ON f.pu_location_id = z.zone_key\n",
+    "    GROUP BY 1, 2 ORDER BY trips DESC LIMIT 15\n",
+    "    \"\"\"\n",
+    ").df()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Why were rows quarantined?"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "con.sql(\n",
+    "    \"\"\"\n",
+    "    SELECT rule, count(*) AS rows_failed\n",
+    "    FROM (SELECT unnest(_failed_rules) AS rule FROM quarantine_trips)\n",
+    "    GROUP BY 1 ORDER BY rows_failed DESC\n",
+    "    \"\"\"\n",
+    ").df()"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "name": "python"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
+}
