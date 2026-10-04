@@ -13,7 +13,7 @@ services:
       - "8000:8000"
 
   pipeline:
-    profiles: ["tools"]
+    profiles: [ "tools" ]
     build:
       context: .
       target: pipeline
@@ -26,8 +26,23 @@ services:
       - lake:/data/lake
       - source:/data/source
 
+  dev:
+    profiles: [ "dev" ]
+    build:
+      context: .
+      target: dev
+    env_file: .env
+    environment:
+      LAKE_ROOT: /data/lake
+      SOURCE_DB_PATH: /data/source/reference.db
+      CONFIG_DIR: /app/config
+    volumes:
+      - .:/app
+      - lake:/data/lake
+      - source:/data/source
+
   airflow:
-    profiles: ["orchestration"]
+    profiles: [ "orchestration" ]
     build:
       context: .
       dockerfile: docker/airflow.Dockerfile
@@ -45,7 +60,7 @@ services:
       - "8080:8080"
 
   prometheus:
-    profiles: ["observability"]
+    profiles: [ "observability" ]
     image: prom/prometheus
     volumes:
       - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml:ro
@@ -53,7 +68,7 @@ services:
       - "9090:9090"
 
   grafana:
-    profiles: ["observability"]
+    profiles: [ "observability" ]
     image: grafana/grafana
     ports:
       - "3000:3000"

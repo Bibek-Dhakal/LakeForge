@@ -7,7 +7,7 @@ name = "lakeforge"
 version = "0.0.0"
 description = "Medallion lakehouse ETL/ELT with idempotent incremental processing, quality quarantine, governed access and backfills."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.10,<3.13"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [{ name = "Bibek Dhakal" }]

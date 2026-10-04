@@ -1,7 +1,7 @@
 # LakeForge
 
-Medallion lakehouse ETL/ELT with **idempotent incremental processing**, **schema enforcement**,
-**data-quality quarantine**, **role-based serving** and **parameterised backfills**, built on
+Medallion lakehouse ETL/ELT with **idempotent incremental processing**, **schema enforcement**, **data-quality
+quarantine**, **role-based serving** and **parameterised backfills**, built on
 open-source tools only (Spark, Delta Lake, Airflow, DuckDB, FastAPI) and runnable on a laptop.
 
 ```text
@@ -17,22 +17,32 @@ LakeForge demonstrates the opposite, with tests: re-running any batch yields ide
 state, every input row ends up in silver **or** quarantine, breaking schema changes halt the
 pipeline, and consumers only see data through role-scoped permissions.
 
-## Quick start
+## Quick start (Docker-First)
+
+To avoid Python version conflicts, Java dependencies, and complex Windows Hadoop configurations, **LakeForge is entirely
+Dockerized**.
 
 ```bash
-python -m venv .venv && source .venv/bin/activate        # Java 17 required for Spark
-pip install -e ".[dev,spark,serving,dashboard]"
 cp .env.example .env
-pre-commit install
 
-lakeforge seed-db                                         # SQLite reference source
-lakeforge run --start 2024-01 --end 2024-01               # ingest -> bronze -> silver -> gold
-lakeforge verify --month 2024-01                          # re-run twice, compare fingerprints
-uvicorn lakeforge.serving.app:app --reload                # role-scoped SQL API
-streamlit run src/lakeforge/serving/dashboard.py          # dashboard on gold
+# 1. Seed reference data and run the ELT pipeline for a month
+docker compose --profile tools run --rm pipeline seed-db
+docker compose --profile tools run --rm pipeline run --start 2024-01 --end 2024-01
+
+# 2. Verify pipeline idempotency (rerun twice and compare hashes)
+docker compose --profile tools run --rm pipeline verify --month 2024-01
+
+# 3. Start the Analytics API (role-scoped SQL over Gold tables)
+docker compose up api
 ```
 
-Windows users: prefer WSL2 or Docker (`docker compose --profile tools run --rm pipeline run ...`).
+In a separate terminal, query the API using DuckDB:
+
+```bash
+curl -H "X-API-Key: change-me-analyst" -H "Content-Type: application/json" \
+  -d '{"sql":"SELECT pickup_date, trips, revenue FROM gold_daily_summary ORDER BY 1 LIMIT 5"}' \
+  http://localhost:8000/query
+```
 
 ## Documentation
 
