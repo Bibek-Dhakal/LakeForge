@@ -47,3 +47,8 @@ ignore = ["B008", "E501"]
 testpaths = ["tests"]
 addopts = "-ra --cov=lakeforge --cov-report=term-missing"
 markers = ["spark: needs local Spark + Delta Lake (slow)"]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore:.*StarletteDeprecationWarning.*",
+    "ignore:.*httpx.*"
+]
