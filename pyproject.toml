@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lakeforge"
+version = "0.0.0"
+description = "Medallion lakehouse ETL/ELT with idempotent incremental processing, quality quarantine, governed access and backfills."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Bibek Dhakal" }]
+dependencies = [
+    "pyyaml",
+    "requests",
+    "python-dotenv",
+    "pandas",
+    "pyarrow",
+    "deltalake",
+]
+
+[project.optional-dependencies]
+# pyspark and delta-spark must be a matching pair; bounded to the Spark 3.5 / Delta 3.x line.
+spark = ["pyspark>=3.5,<4", "delta-spark>=3.2,<4"]
+serving = ["fastapi", "uvicorn", "duckdb"]
+dashboard = ["streamlit"]
+notebooks = ["jupyterlab", "matplotlib"]
+dev = ["pytest", "pytest-cov", "httpx", "ruff", "pre-commit"]
+
+[project.scripts]
+lakeforge = "lakeforge.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "W"]
+ignore = ["B008", "E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --cov=lakeforge --cov-report=term-missing"
+markers = ["spark: needs local Spark + Delta Lake (slow)"]
