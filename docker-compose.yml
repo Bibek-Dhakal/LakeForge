@@ -1,0 +1,63 @@
+services:
+  api:
+    build:
+      context: .
+      target: serving
+    env_file: .env
+    environment:
+      LAKE_ROOT: /data/lake
+      CONFIG_DIR: /app/config
+    volumes:
+      - lake:/data/lake
+    ports:
+      - "8000:8000"
+
+  pipeline:
+    profiles: ["tools"]
+    build:
+      context: .
+      target: pipeline
+    env_file: .env
+    environment:
+      LAKE_ROOT: /data/lake
+      SOURCE_DB_PATH: /data/source/reference.db
+      CONFIG_DIR: /app/config
+    volumes:
+      - lake:/data/lake
+      - source:/data/source
+
+  airflow:
+    profiles: ["orchestration"]
+    build:
+      context: .
+      dockerfile: docker/airflow.Dockerfile
+    command: standalone
+    env_file: .env
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      LAKE_ROOT: /data/lake
+      SOURCE_DB_PATH: /data/source/reference.db
+      CONFIG_DIR: /opt/lakeforge/config
+    volumes:
+      - lake:/data/lake
+      - source:/data/source
+    ports:
+      - "8080:8080"
+
+  prometheus:
+    profiles: ["observability"]
+    image: prom/prometheus
+    volumes:
+      - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+
+  grafana:
+    profiles: ["observability"]
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+
+volumes:
+  lake:
+  source:

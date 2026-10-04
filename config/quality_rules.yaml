@@ -1,0 +1,55 @@
+# Rule types: not_null | range | in_set | regex | expression | unique | referential
+# `expression` must evaluate TRUE for a valid row. Placeholders: {batch_start} {batch_end} {late_start}
+taxi_trips:
+  - {name: pickup_not_null, type: not_null, column: tpep_pickup_datetime, description: pickup timestamp required}
+  - {name: dropoff_not_null, type: not_null, column: tpep_dropoff_datetime, description: dropoff timestamp required}
+  - {name: pu_zone_not_null, type: not_null, column: pulocationid, description: pickup zone required}
+  - {name: do_zone_not_null, type: not_null, column: dolocationid, description: dropoff zone required}
+  - {name: fare_not_null, type: not_null, column: fare_amount, description: fare required}
+  - {name: total_not_null, type: not_null, column: total_amount, description: total required}
+  - {name: passenger_range, type: range, column: passenger_count, min: 0, max: 9, description: passenger_count outside 0..9}
+  - {name: distance_range, type: range, column: trip_distance, min: 0, max: 500, description: trip_distance outside 0..500 miles}
+  - {name: fare_range, type: range, column: fare_amount, min: 0, max: 1000, description: fare_amount outside 0..1000}
+  - {name: tip_range, type: range, column: tip_amount, min: 0, max: 1000, description: tip_amount outside 0..1000}
+  - {name: total_range, type: range, column: total_amount, min: 0, max: 2000, description: total_amount outside 0..2000}
+  - name: dropoff_after_pickup
+    type: expression
+    expr: "tpep_dropoff_datetime >= tpep_pickup_datetime"
+    description: dropoff earlier than pickup
+  - name: duration_max_24h
+    type: expression
+    expr: "unix_timestamp(tpep_dropoff_datetime) - unix_timestamp(tpep_pickup_datetime) <= 86400"
+    description: trip longer than 24h
+  - name: outside_late_window
+    type: expression
+    expr: "tpep_pickup_datetime >= '{late_start}' AND tpep_pickup_datetime < '{batch_end}'"
+    description: pickup outside batch month plus late-arrival window
+  - {name: pu_zone_exists, type: referential, column: pulocationid, ref_table: zones, ref_column: location_id, description: unknown pickup zone}
+  - {name: do_zone_exists, type: referential, column: dolocationid, ref_table: zones, ref_column: location_id, description: unknown dropoff zone}
+  - {name: payment_type_exists, type: referential, column: payment_type, ref_table: payment_types, ref_column: payment_type_id, description: unknown payment type}
+
+weather_daily:
+  - {name: date_not_null, type: not_null, column: date, description: date required}
+  - {name: date_unique_in_batch, type: unique, column: date, description: duplicate date in batch}
+  - name: date_in_batch_month
+    type: expression
+    expr: "date >= '{batch_start}' AND date < '{batch_end}'"
+    description: date outside batch month
+  - {name: tmax_not_null, type: not_null, column: temperature_2m_max, description: max temperature required}
+  - {name: tmin_not_null, type: not_null, column: temperature_2m_min, description: min temperature required}
+  - {name: tmax_range, type: range, column: temperature_2m_max, min: -60, max: 60, description: tmax outside -60..60 C}
+  - {name: tmin_range, type: range, column: temperature_2m_min, min: -60, max: 60, description: tmin outside -60..60 C}
+  - {name: precip_range, type: range, column: precipitation_sum, min: 0, max: 1000, description: precipitation outside 0..1000 mm}
+  - name: tmax_ge_tmin
+    type: expression
+    expr: "temperature_2m_max >= temperature_2m_min"
+    description: tmax below tmin
+
+zones:
+  - {name: location_id_not_null, type: not_null, column: location_id, description: location_id required}
+  - {name: location_id_unique_in_batch, type: unique, column: location_id, description: duplicate location_id in batch}
+  - {name: borough_not_null, type: not_null, column: borough, description: borough required}
+
+payment_types:
+  - {name: payment_type_id_not_null, type: not_null, column: payment_type_id, description: payment_type_id required}
+  - {name: payment_type_id_unique_in_batch, type: unique, column: payment_type_id, description: duplicate payment_type_id in batch}
