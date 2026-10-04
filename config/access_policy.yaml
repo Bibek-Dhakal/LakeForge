@@ -1,0 +1,28 @@
+# Roles map to the tables (catalog names) a principal may query.
+# API keys are mapped to roles via the API_KEYS environment variable.
+roles:
+  analyst:
+    - gold_daily_summary
+    - gold_fact_trips_daily
+    - gold_dim_date
+    - gold_dim_zone
+    - gold_dim_payment_type
+  ml_engineer:
+    - gold_daily_summary
+    - gold_fact_trips_daily
+    - silver_trips
+    - silver_weather_daily
+  operator:
+    - gold_daily_summary
+    - gold_fact_trips_daily
+    - gold_dim_date
+    - gold_dim_zone
+    - gold_dim_payment_type
+    - silver_trips
+    - silver_weather_daily
+    - silver_zones
+    - silver_payment_types
+    - quarantine_taxi_trips
+    - quarantine_weather_daily
+    - quarantine_zones
+    - quarantine_payment_types
