@@ -2,6 +2,9 @@
 
 ## Docker
 
+LakeForge relies strictly on Docker to eliminate host-machine dependencies (Java, Hadoop DLLs, specific Python
+versions).
+
 ```bash
 cp .env.example .env
 docker compose up --build api                                   # API on :8000
@@ -19,7 +22,7 @@ DAG `lakeforge_monthly` runs one month per DAG run (`@monthly`, `catchup=True`, 
 backoff). Backfill a range (Airflow 2.x):
 
 ```bash
-airflow dags backfill -s 2024-01-01 -e 2024-03-31 lakeforge_monthly
+docker compose --profile orchestration exec airflow airflow dags backfill -s 2024-01-01 -e 2024-03-31 lakeforge_monthly
 ```
 
 Re-running a month is safe: every stage is idempotent.
