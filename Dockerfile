@@ -23,3 +23,10 @@ RUN apt-get update \
 RUN pip install --no-cache-dir ".[spark]"
 ENTRYPOINT ["lakeforge"]
 CMD ["--help"]
+
+# ---- Development / Testing ----
+FROM pipeline AS dev
+ENTRYPOINT []
+# Install all extras in editable mode to support live code reloading via volume mounts
+RUN pip install --no-cache-dir -e ".[dev,spark,serving,dashboard]"
+CMD ["bash"]
