@@ -8,6 +8,7 @@ open-source tools only (Spark, Delta Lake, Airflow, DuckDB, FastAPI) and runnabl
 files (NYC TLC) ┐
 API (Open-Meteo)├─> landing (immutable) -> bronze -> validate ─┬─> silver (MERGE) -> gold -> API / dashboard
 SQLite reference┘                                              └─> quarantine (rule + reason + batch)
+
 ```
 
 ## Why
@@ -37,6 +38,7 @@ docker compose up api
 
 # 4. View the Streamlit Dashboard (accessible at http://localhost:8501)
 docker compose --profile dev run --rm -p 8501:8501 dev streamlit run src/lakeforge/serving/dashboard.py
+
 ```
 
 In a separate terminal, query the API using DuckDB:
@@ -45,19 +47,26 @@ In a separate terminal, query the API using DuckDB:
 curl -H "X-API-Key: change-me-analyst" -H "Content-Type: application/json" \
   -d '{"sql":"SELECT pickup_date, trips, revenue FROM gold_daily_summary ORDER BY 1 LIMIT 5"}' \
   http://localhost:8000/query
+
 ```
+
+## Releases
+
+* [Release Notes (v0.1.0)](docs/releases/v0.1.0.md): Initial release highlights,
+  architecture diagrams, testing artifacts, and visual evidence.
 
 ## Documentation
 
-- [Usage](docs/usage/README.md): CLI, configuration reference, API reference
-- [Architecture](docs/architecture/README.md): layers, data model, catalog and lineage
-- [Testing](docs/testing/README.md): strategy, invariants, CI
-- [Results](docs/results/README.md): performance report and evaluation outputs
-- [Data](docs/data/README.md): datasets and licensing notes
-- [Roadmap](docs/roadmap.md)
-- [Case study](docs/case_study.md)
-- [Code quality](docs/code_quality.md)
-- [Contributing](CONTRIBUTING.md)
+* [Usage](docs/usage/README.md): CLI, configuration reference, API reference
+* [Architecture](docs/architecture/README.md): layers, data model, catalog and lineage
+* [Releases](docs/releases/v0.1.0.md): v0.1.0 release notes and artifacts
+* [Testing](docs/testing/README.md): strategy, invariants, CI
+* [Results](docs/results/README.md): performance report and evaluation outputs
+* [Data](docs/data/README.md): datasets and licensing notes
+* [Roadmap](docs/roadmap.md)
+* [Case study](docs/case_study.md)
+* [Code quality](docs/code_quality.md)
+* [Contributing](CONTRIBUTING.md)
 
 ## System invariants
 
