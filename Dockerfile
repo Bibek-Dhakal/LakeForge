@@ -3,7 +3,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     LAKE_ROOT=/data/lake \
     SOURCE_DB_PATH=/data/source/reference.db \
-    CONFIG_DIR=/app/config
+    CONFIG_DIR=/app/config \
+    SPARK_CONF_DIR=/app/config
 WORKDIR /app
 COPY pyproject.toml README.md LICENSE ./
 COPY src ./src
