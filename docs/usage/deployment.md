@@ -57,6 +57,13 @@ Re-running a month is safe: every stage is idempotent.
 
 ## Observability
 
+*Note: Prometheus scrapes metrics from the Analytics API. You must ensure the `api` container is running for metrics to
+be collected:*
+
+```bash
+docker compose up -d api
+```
+
 Start the observability stack in the background:
 
 ```bash
@@ -64,14 +71,16 @@ docker compose --profile observability up -d prometheus grafana
 ```
 
 - **Prometheus UI:** Available at `http://localhost:9090`.
-    - Navigate to **Status -> Targets** to confirm the `api:8000/metrics` endpoint is up and actively scraping.
+    - Navigate to **Status -> Targets** and confirm the `lakeforge` endpoint (`api:8000/metrics`) is in the **UP**
+      state. If it is down, ensure your API container is running.
     - Use the main query bar to inspect LakeForge metrics directly (e.g., `lakeforge_freshness_slo_breached` or
       `lakeforge_stage_failed`).
 - **Grafana UI:** Available at `http://localhost:3000` (default login is `admin` / `admin`).
-    - To connect Prometheus, go to **Connections -> Data sources -> Add data source -> Prometheus**. Set the URL to
+    - **Connect Prometheus:** Go to **Connections -> Data sources -> Add data source -> Prometheus**. Set the URL to
       `http://prometheus:9090` and click "Save & test".
-    - You can then use the **Explore** view to visualize LakeForge metrics or set up alert rules on
-      `lakeforge_freshness_slo_breached == 1` or `lakeforge_stage_failed == 1`.
+    - **View Data:** Go to the **Explore** view (compass icon). In the **Metric** dropdown, select a metric like
+      `lakeforge_stage_duration_seconds`, then click the blue **Run query** button in the top right to view your data
+      graph. You can also set up dashboards and alert rules from this data.
 - **Live Logs:** To view raw streaming container logs from the terminal, run `docker compose logs -f`.
 
 ## Public URL
