@@ -1,16 +1,23 @@
 # Analytics API
 
-Start: `uvicorn lakeforge.serving.app:app --port 8000` (interactive docs at `/docs`).
+Start the API using Docker:
+
+```bash
+docker compose up api
+```
+
+*(Interactive docs are available at `http://localhost:8000/docs`).*
+
 Send `X-API-Key: <key>`; keys map to roles through `API_KEYS`, roles map to tables in
 `config/access_policy.yaml`.
 
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| GET | `/health` | none | Liveness |
-| GET | `/metrics` | none | Prometheus metrics: freshness, quality pass-rate, quarantined rows, durations |
-| GET | `/tables` | key | Tables visible to the caller's role |
-| GET | `/tables/{name}?limit=&offset=` | key | Browse a permitted table |
-| POST | `/query` | key | Body `{"sql": "...", "limit": 1000}`, read-only SQL |
+| Method | Path                            | Auth | Description                                                                   |
+|--------|---------------------------------|------|-------------------------------------------------------------------------------|
+| GET    | `/health`                       | none | Liveness                                                                      |
+| GET    | `/metrics`                      | none | Prometheus metrics: freshness, quality pass-rate, quarantined rows, durations |
+| GET    | `/tables`                       | key  | Tables visible to the caller's role                                           |
+| GET    | `/tables/{name}?limit=&offset=` | key  | Browse a permitted table                                                      |
+| POST   | `/query`                        | key  | Body `{"sql": "...", "limit": 1000}`, read-only SQL                           |
 
 ```bash
 curl -H "X-API-Key: change-me-analyst" localhost:8000/tables

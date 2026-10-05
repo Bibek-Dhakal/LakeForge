@@ -21,6 +21,7 @@ def get_spark(settings: Settings, app: str = "lakeforge"):
         .config("spark.sql.session.timeZone", "UTC")
         .config("spark.databricks.delta.schema.autoMerge.enabled", "false")
         .config("spark.ui.showConsoleProgress", "false")
+        .config("spark.sql.debug.maxToStringFields", "1000")
     )
     spark = configure_spark_with_delta_pip(builder).getOrCreate()
     spark.sparkContext.setLogLevel("WARN")
