@@ -6,6 +6,9 @@ Back to [README](../README.md).
 
 - Three sources into landing, bronze, silver and gold, with quarantine, idempotent merges, backfills.
 - RBAC API, dashboard, Prometheus metrics, Airflow DAG, CI, Docker.
+- Shifted all development, testing, and execution entirely to Docker.
+- Implemented dual Airflow deployment profiles supporting both lightweight SQLite and production-grade PostgreSQL
+  architectures.
 
 ## Next
 
