@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lakeforge"
-version = "0.0.0"
+version = "0.1.0"
 description = "Medallion lakehouse ETL/ELT with idempotent incremental processing, quality quarantine, governed access and backfills."
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
