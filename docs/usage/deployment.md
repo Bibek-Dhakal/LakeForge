@@ -15,17 +15,42 @@ docker compose --profile tools run --rm pipeline run --start 2024-01 --end 2024-
 docker compose --profile dev run --rm -p 8501:8501 dev streamlit run src/lakeforge/serving/dashboard.py
 ```
 
-## Airflow
+## Airflow Orchestration
+
+LakeForge ships with two parallel Airflow architectures, fully automated via Docker Compose profiles.
+
+### Option A: Lightweight (Development & Portfolios)
+
+Uses the `standalone` command and a local SQLite database to minimize memory footprint.
 
 ```bash
-docker compose --profile orchestration up --build airflow       # UI on :8080
+docker compose --profile orchestration up --build airflow
 ```
+
+### Option B: Production-Grade (Concurrency & Scale)
+
+Uses a dedicated **PostgreSQL** database and the `LocalExecutor` to run the Webserver and Scheduler independently,
+completely eliminating database locks.
+
+```bash
+docker compose --profile orchestration-prod up --build
+```
+
+*(Default credentials for the UI at `localhost:8080` are `admin` / `admin`).*
+
+---
+
+### Triggering DAGs
 
 DAG `lakeforge_monthly` runs one month per DAG run (`@monthly`, `catchup=True`, retries with
 backoff). Backfill a range (Airflow 2.x):
 
 ```bash
+# For Option A (Standalone):
 docker compose --profile orchestration exec airflow airflow dags backfill -s 2024-01-01 -e 2024-03-31 lakeforge_monthly
+
+# For Option B (Production):
+docker compose --profile orchestration-prod exec airflow-scheduler airflow dags backfill -s 2024-01-01 -e 2024-03-31 lakeforge_monthly
 ```
 
 Re-running a month is safe: every stage is idempotent.

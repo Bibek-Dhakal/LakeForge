@@ -1,4 +1,4 @@
-FROM apache/airflow:2.10.5-python3.11
+FROM apache/airflow:2.8.1-python3.11
 
 USER root
 RUN apt-get update \
@@ -6,12 +6,11 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 USER airflow
-COPY --chown=airflow:root pyproject.toml README.md LICENSE /opt/lakeforge/
-COPY --chown=airflow:root src /opt/lakeforge/src
-COPY --chown=airflow:root config /opt/lakeforge/config
-RUN pip install --no-cache-dir "/opt/lakeforge[spark]"
-COPY --chown=airflow:root airflow/dags /opt/airflow/dags
+COPY --chown=airflow:0 pyproject.toml README.md LICENSE /opt/lakeforge/
+COPY --chown=airflow:0 src /opt/lakeforge/src
+COPY --chown=airflow:0 config /opt/lakeforge/config
 
-ENV CONFIG_DIR=/opt/lakeforge/config \
-    LAKE_ROOT=/data/lake \
-    SOURCE_DB_PATH=/data/source/reference.db
+RUN pip install --no-cache-dir -e /opt/lakeforge[spark]
+
+ENV PYTHONPATH=/opt/lakeforge/src
+COPY --chown=airflow:0 airflow/dags /opt/airflow/dags
