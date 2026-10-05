@@ -57,12 +57,22 @@ Re-running a month is safe: every stage is idempotent.
 
 ## Observability
 
+Start the observability stack in the background:
+
 ```bash
-docker compose --profile observability up prometheus grafana
+docker compose --profile observability up -d prometheus grafana
 ```
 
-Prometheus scrapes `api:8000/metrics`. Add a Prometheus datasource in Grafana (`http://prometheus:9090`)
-and alert on `lakeforge_freshness_slo_breached == 1` or `lakeforge_stage_failed == 1`.
+- **Prometheus UI:** Available at `http://localhost:9090`.
+    - Navigate to **Status -> Targets** to confirm the `api:8000/metrics` endpoint is up and actively scraping.
+    - Use the main query bar to inspect LakeForge metrics directly (e.g., `lakeforge_freshness_slo_breached` or
+      `lakeforge_stage_failed`).
+- **Grafana UI:** Available at `http://localhost:3000` (default login is `admin` / `admin`).
+    - To connect Prometheus, go to **Connections -> Data sources -> Add data source -> Prometheus**. Set the URL to
+      `http://prometheus:9090` and click "Save & test".
+    - You can then use the **Explore** view to visualize LakeForge metrics or set up alert rules on
+      `lakeforge_freshness_slo_breached == 1` or `lakeforge_stage_failed == 1`.
+- **Live Logs:** To view raw streaming container logs from the terminal, run `docker compose logs -f`.
 
 ## Public URL
 
