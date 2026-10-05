@@ -2,8 +2,10 @@ x-airflow-prod-common: &airflow-prod-common
   build:
     context: .
     dockerfile: docker/airflow.Dockerfile
+  user: "0:0"
   env_file: .env
   environment:
+    PYTHONPATH: "/opt/lakeforge/src:/home/airflow/.local/lib/python3.11/site-packages"
     AIRFLOW__CORE__LOAD_EXAMPLES: "false"
     AIRFLOW__CORE__EXECUTOR: LocalExecutor
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
@@ -63,9 +65,11 @@ services:
     build:
       context: .
       dockerfile: docker/airflow.Dockerfile
+    user: "0:0"
     command: standalone
     env_file: .env
     environment:
+      PYTHONPATH: "/opt/lakeforge/src:/home/airflow/.local/lib/python3.11/site-packages"
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
       LAKE_ROOT: /data/lake
       SOURCE_DB_PATH: /data/source/reference.db
