@@ -10,6 +10,9 @@ cp .env.example .env
 docker compose up --build api                                   # API on :8000
 docker compose --profile tools run --rm pipeline seed-db
 docker compose --profile tools run --rm pipeline run --start 2024-01 --end 2024-03
+
+# Run the Streamlit dashboard on :8501
+docker compose --profile dev run --rm -p 8501:8501 dev streamlit run src/lakeforge/serving/dashboard.py
 ```
 
 ## Airflow

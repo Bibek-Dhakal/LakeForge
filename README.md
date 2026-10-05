@@ -34,6 +34,9 @@ docker compose --profile tools run --rm pipeline verify --month 2024-01
 
 # 3. Start the Analytics API (role-scoped SQL over Gold tables)
 docker compose up api
+
+# 4. View the Streamlit Dashboard (accessible at http://localhost:8501)
+docker compose --profile dev run --rm -p 8501:8501 dev streamlit run src/lakeforge/serving/dashboard.py
 ```
 
 In a separate terminal, query the API using DuckDB:
