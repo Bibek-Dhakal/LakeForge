@@ -1,3 +1,19 @@
+x-airflow-prod-common: &airflow-prod-common
+  build:
+    context: .
+    dockerfile: docker/airflow.Dockerfile
+  env_file: .env
+  environment:
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+    LAKE_ROOT: /data/lake
+    SOURCE_DB_PATH: /data/source/reference.db
+    CONFIG_DIR: /opt/lakeforge/config
+  volumes:
+    - lake:/data/lake
+    - source:/data/source
+
 services:
   api:
     build:
@@ -13,7 +29,7 @@ services:
       - "8000:8000"
 
   pipeline:
-    profiles: [ "tools" ]
+    profiles: ["tools"]
     build:
       context: .
       target: pipeline
@@ -27,7 +43,7 @@ services:
       - source:/data/source
 
   dev:
-    profiles: [ "dev" ]
+    profiles: ["dev"]
     build:
       context: .
       target: dev
@@ -41,8 +57,9 @@ services:
       - lake:/data/lake
       - source:/data/source
 
+  # --- Lightweight Airflow (SQLite) ---
   airflow:
-    profiles: [ "orchestration" ]
+    profiles: ["orchestration"]
     build:
       context: .
       dockerfile: docker/airflow.Dockerfile
@@ -59,8 +76,54 @@ services:
     ports:
       - "8080:8080"
 
+  # --- Production Airflow (PostgreSQL + LocalExecutor) ---
+  postgres:
+    profiles: ["orchestration-prod"]
+    image: postgres:15
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 5s
+      retries: 5
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  airflow-init:
+    <<: *airflow-prod-common
+    profiles: ["orchestration-prod"]
+    command: >
+      bash -c "airflow db migrate && airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com || true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  airflow-webserver:
+    <<: *airflow-prod-common
+    profiles: ["orchestration-prod"]
+    command: webserver
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+
+  airflow-scheduler:
+    <<: *airflow-prod-common
+    profiles: ["orchestration-prod"]
+    command: scheduler
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+
   prometheus:
-    profiles: [ "observability" ]
+    profiles: ["observability"]
     image: prom/prometheus
     volumes:
       - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml:ro
@@ -68,7 +131,7 @@ services:
       - "9090:9090"
 
   grafana:
-    profiles: [ "observability" ]
+    profiles: ["observability"]
     image: grafana/grafana
     ports:
       - "3000:3000"
@@ -76,3 +139,4 @@ services:
 volumes:
   lake:
   source:
+  postgres_data:
