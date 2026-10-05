@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/Bibek-Dhakal/LakeForge/compare/lakeforge-v0.1.0...lakeforge-v0.1.1) (2026-10-05)
+
+
+### Documentation
+
+* add v0.1.0 release notes link to root README ([d5357dd](https://github.com/Bibek-Dhakal/LakeForge/commit/d5357ddaa7f2ec76b47cb31c5e82b400285dd50d))
+
 ## 0.1.0 (2026-10-05)
 
 
